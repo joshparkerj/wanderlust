@@ -3,6 +3,7 @@ const clientId = '3K3LZ4EXLMDAMUCGTBTGCKSOARKFIMSS5R4OJBKNOPPYP22O';
 const clientSecret = 'TQE3FF3JLHBZ2PNCR2QSP0SVSVZKW0TXW2RFYTTU5DDCCWLR';
 const url = 'https://api.foursquare.com/v2/venues/explore';
 const param = '?near=';
+const detailUrl = 'https://api.foursquare.com/v2/venues/'
 
 // APIXU Info
 const apiKey = '84ece35a0ed340f8b43185829182307';
@@ -36,11 +37,26 @@ const getVenues = async () => {
     if (response.ok){
       const jsonResponse = await response.json();
       const venues = jsonResponse.response.groups[0].items.map(e=>e.venue);
+      for (i of venues){
+        i.bestPhoto = getDetails(i);
+      }
       return fyShuffle(venues);
     }
   }catch(error){
     console.log(error);
   }
+}
+const getDetails = async (venue) => {
+	const urlToFetch = detailUrl+venue.id+'?limit=1'+'&client_id='+clientId+'&client_secret='+clientSecret+'&v=20180723';
+	try{
+		const response = await fetch(urlToFetch);
+		if (response.ok){
+			const jsonResponse = await response.json();
+			return jsonResponse.response.venue.bestPhoto;
+		}
+	}catch(error){
+		console.log(error);
+	}
 }
 
 const getForecast = async () => {
@@ -69,6 +85,7 @@ const renderVenues = (venues) => {
     console.log(venue);
     let venueContent = '<h2>'+venue.name+'</h2><img class="venueimage" src="'+venueImgSrc+'" title="'+venue.categories[0].name+'"/><h3>Address:</h3><p>'+venue.location.address+'</p><p>'+venue.location.city+'</p><p>'+venue.location.country+'</p>';
     $venue.append(venueContent);
+    console.log(venue.bestPhoto);
   });
   $destination.append(`<h2>${venues[0].location.state}, ${venues[0].location.country}</h2>`);
 }
